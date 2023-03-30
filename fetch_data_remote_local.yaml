@@ -1,0 +1,42 @@
+---
+- name: Copy files from remote servers and compress to .tar file
+  hosts: bigfix
+  become: true
+  tasks:
+    - name: Create directory on local server
+      ansible.builtin.file:
+        path: "/tmp/downloads/{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+      register: directory_created
+
+    - name: Copy files from remote servers to local server
+      ansible.builtin.copy:
+        src: "/etc/systemd/system/"
+        dest: "/tmp/downloads/{{ inventory_hostname }}/"
+        remote_src: true
+      when: directory_created is succeeded
+
+    - name: Compress files in directory
+      ansible.builtin.archive:
+        path: "/tmp/downloads/{{ inventory_hostname }}/"
+        dest: "/tmp/downloads/{{ inventory_hostname }}.tar"
+        format: tar
+
+ #   - name: Fetch compressed file to local machine
+ #     ansible.builtin.fetch:
+ #       src: "/tmp/downloads/{{ inventory_hostname }}.tar"
+ #       dest: "/tmp/downloads/{{ inventory_hostname }}.tar"
+ #       flat: yes
+
+    - name: Fetch compressed file to local machine
+      ansible.builtin.fetch:
+        src: "/tmp/downloads/{{ inventory_hostname }}.tar"
+        dest: "/tmp/downloads/{{ inventory_hostname }}_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}.tar"
+        flat: yes
+
+    - name: Delete compressed file from remote location
+      ansible.builtin.file:
+        path: "/tmp/downloads"
+        state: absent
+
