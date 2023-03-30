@@ -24,4 +24,3 @@ How to execute this playbook
 4. when prompt for password , enter your root password 
 
 5. Once playbook run successfully , you can check your /tmp/downloads/ of your local machine from which playbook is being executed.
-
